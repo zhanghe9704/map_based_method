@@ -8,9 +8,14 @@ using std::vector;
 using std::cout;
 using std::endl;
 
+/******
+* In this example, we read the truncated map from an output of COSY Infinity 9.x
+* and perform the Lie factorization for it.
+******/
+
 int main() {
     int dim = 2;
-    int da_order = 6;  //This should be 1 above the order of the map for gf calculation.
+    int da_order = 6;  //This should be 1 above the order of the map for lie factorization calculation.
     int da_dim = 2*dim;
     int da_scratch = 5000;
     //Initialize the da environment. Reserve one more order for the following Lie factorization calculation.
@@ -18,7 +23,7 @@ int main() {
 
     //Read the truncated map from file.
     vector<Map> trunc_map(da_dim, Map(dim, da_full_length()));
-    char filename[100] = "test_Liemap_6th_order_4_dim.txt";
+    char filename[100] = "test_Liemap_6th_order_4_dim.txt"; //Truncated Taylor map
     readCOSYMap(dim, filename, trunc_map);
 
     //Print the map to screen.
