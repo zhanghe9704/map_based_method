@@ -6,6 +6,8 @@
 *.a
 *.dll
 *.def
-/cbp
-/build
-/run
+*.exe
+cbp
+build
+examples/obj
+examples/bin

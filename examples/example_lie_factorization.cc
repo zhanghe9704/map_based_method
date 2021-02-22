@@ -15,7 +15,7 @@ using std::endl;
 
 int main() {
     int dim = 2;
-    int da_order = 6;  //This should be 1 above the order of the map for lie factorization calculation.
+    int da_order = 6;
     int da_dim = 2*dim;
     int da_scratch = 5000;
     //Initialize the da environment. Reserve one more order for the following Lie factorization calculation.
@@ -43,6 +43,17 @@ int main() {
     lie_factorization(da_map, da_dim, da_order, c, l , fo);
 
     cout<<"Lie factorization: "<<endl;
+    cout<<"Constants: "<<endl;
+    for(int i=0; i<da_dim; ++i) {
+    cout<<c.at(i)<<endl;
+    }
+    cout<<"Linear map: "<<endl;
+    for(auto&v : l) v.print();
+    cout<<"f_i: "<<endl;
+    for(auto&v : fo) v.print();
+
+    lie_factorization_inverse_order(da_map, da_dim, da_order, c, l , fo);
+    cout<<"Lie factorization in verse order: "<<endl;
     cout<<"Constants: "<<endl;
     for(int i=0; i<da_dim; ++i) {
     cout<<c.at(i)<<endl;

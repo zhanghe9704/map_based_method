@@ -1,4 +1,5 @@
 #include "../include/da_functions.h"
+#include <algorithm>
 #include <assert.h>
 
 
@@ -61,7 +62,7 @@ DAVector lie_exp(DAVector& f, DAVector& g, unsigned int nv, double eps) {
 /** \brief Calculate the Lie factorization from a Taylor map.
  * Calculate the Lie factorization M(x) =n (L exp(:f3:)exp(:f4:)...exp(:f(n+1):)) x + C from a Taylor map,
  * where L is the linear map, C is the constants.
- * Because the function f will be calculated up to (n+1)-th order for an n-th order Taylor map, one needs to initiallzie
+ * Because the function f will be calculated up to (n+1)-th order for an n-th order Taylor map, one needs to initialize
  * the DA environment with at least the (n+1)-th order to get the correct result.
  * \param m The truncated Taylor map.
  * \param nv Number of DA variables.
@@ -83,13 +84,14 @@ void lie_factorization(std::vector<DAVector>& m, unsigned int nv, int no, std::v
         c.push_back(m.at(i).con());     //The constants of the map m.
         n.push_back(m.at(i)-c.at(i));
     }
+    unsigned int da_order = DAVector::order();
     da_change_order(1);
     for(unsigned int i=0; i<nv; ++i) l.push_back(n.at(i));  //Linear map.
 
     std::vector<DAVector> ln(nv);
     inv_map(l, nv, ln);  //Inverse linear map: ln.
 
-    da_restore_order();
+    da_change_order(da_order);
 
     std::vector<DAVector> nl(nv);
     da_composition(n, ln, nl);
@@ -107,11 +109,46 @@ void lie_factorization(std::vector<DAVector>& m, unsigned int nv, int no, std::v
         f.push_back(fi);
 
         fi *= -1;
-        da_restore_order();
+        da_change_order(da_order);
         for(unsigned int j=0; j<nv; ++j) {
             nl.at(j) = lie_exp(fi, nl.at(j), nv, eps);
         }
     }
 
-    da_restore_order();
+    da_change_order(da_order);
 }
+
+/** \brief Calculate the Lie factorization in reverse order from a Taylor map.
+ * Calculate the Lie factorization M(x) =n (exp(:f(n+1):))...exp(:f4:)exp(:f3:)L) x + C from a Taylor map,
+ * where L is the linear map, C is the constants.
+ * Because the function f will be calculated up to (n+1)-th order for an n-th order Taylor map, one needs to initialize
+ * the DA environment with at least the (n+1)-th order to get the correct result.
+ * \param m The truncated Taylor map.
+ * \param nv Number of DA variables.
+ * \param no Order of the truncated map.
+ * \param c Constants of the map.
+ * \param l Linear map.
+ * \param f The fi of the Lie factorization.
+ * \param eps If the absolute value of a coefficient in a DA vector is less than eps, it will be set to zero.
+ * \return none.
+ *
+ */
+void lie_factorization_inverse_order(std::vector<DAVector>& m, unsigned int nv, int no, std::vector<double>& c,
+                       std::vector<DAVector>& l, std::vector<DAVector>& f, double eps) {
+     std::vector<DAVector> m_inv(nv);
+     inv_map(m, nv, m_inv);
+     for(auto& v: m_inv) v.print();
+     lie_factorization(m_inv, nv, no, c, l, f, eps);
+     for(auto& v:f) v*=-1;
+     std::reverse(f.begin(), f.end());
+
+     unsigned int da_order = DAVector::order();
+     da_change_order(1);
+     for(int i=0; i<nv; ++i) {
+        c.at(i) = m.at(i).con();
+        l.at(i) = m.at(i) - c.at(i);
+     }
+     da_change_order(da_order);
+}
+
+
