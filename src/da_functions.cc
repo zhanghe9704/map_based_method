@@ -33,11 +33,12 @@ DAVector da_gmd(DAVector& f, std::vector<DAVector>& g, unsigned int nv) {
     return res;
 }
 
-DAVector da_flow(std::vector<DAVector>& f, DAVector& g, unsigned int nv, double eps) {
+DAVector da_flow(std::vector<DAVector>& f, DAVector& g, unsigned int nv) {
     DAVector dg = da_gmd(g, f, nv);
     DAVector res = g + dg;
     double cnt = 1.0;
 
+    double eps = DAVector::eps();
     while(dg.norm()>eps) {
         cnt += 1;
         dg /= cnt;
@@ -50,13 +51,13 @@ DAVector da_flow(std::vector<DAVector>& f, DAVector& g, unsigned int nv, double 
     return res;
 }
 
-DAVector lie_exp(DAVector& f, DAVector& g, unsigned int nv, double eps) {
+DAVector lie_exp(DAVector& f, DAVector& g, unsigned int nv) {
     std::vector<DAVector> x(nv);
     for(unsigned int i=0; i<nv; i+=2) {
         x.at(i) = -da_der(f, i+1);
         x.at(i+1) = da_der(f, i);
     }
-    return da_flow(x, g, nv, eps);
+    return da_flow(x, g, nv);
 }
 
 /** \brief Calculate the Lie factorization from a Taylor map.
@@ -75,7 +76,7 @@ DAVector lie_exp(DAVector& f, DAVector& g, unsigned int nv, double eps) {
  *
  */
 void lie_factorization(std::vector<DAVector>& m, unsigned int nv, int no, std::vector<double>& c,
-                       std::vector<DAVector>& l, std::vector<DAVector>& f, double eps) {
+                       std::vector<DAVector>& l, std::vector<DAVector>& f, bool combine) {
     c.clear();
     l.clear();
     f.clear();
@@ -97,21 +98,25 @@ void lie_factorization(std::vector<DAVector>& m, unsigned int nv, int no, std::v
     da_composition(n, ln, nl);
 
     for(int i=1; i<no; ++i) {
-        da_change_order(i+1);
+        unsigned int order = i+1;
+        if(combine) {
+            order = pow(2,i);
+            if (da_order<order) order = da_order;
+        }
+        da_change_order(order);
         for(unsigned int j=0; j<nv; j+=2) {
             ln.at(j) = nl.at(j+1) - da[j+1];
             ln.at(j+1) = -nl.at(j) + da[j];
         }
-
-        da_change_order(i+2);
+        da_change_order(order+1);
         DAVector fi = potential(ln, nv);
-        fi.clean(eps);
+        fi.clean();
         f.push_back(fi);
 
         fi *= -1;
         da_change_order(da_order);
         for(unsigned int j=0; j<nv; ++j) {
-            nl.at(j) = lie_exp(fi, nl.at(j), nv, eps);
+            nl.at(j) = lie_exp(fi, nl.at(j), nv);
         }
     }
 
@@ -134,11 +139,11 @@ void lie_factorization(std::vector<DAVector>& m, unsigned int nv, int no, std::v
  *
  */
 void lie_factorization_inverse_order(std::vector<DAVector>& m, unsigned int nv, int no, std::vector<double>& c,
-                       std::vector<DAVector>& l, std::vector<DAVector>& f, double eps) {
+                       std::vector<DAVector>& l, std::vector<DAVector>& f, bool combine) {
      std::vector<DAVector> m_inv(nv);
      inv_map(m, nv, m_inv);
      for(auto& v: m_inv) v.print();
-     lie_factorization(m_inv, nv, no, c, l, f, eps);
+     lie_factorization(m_inv, nv, no, c, l, f, combine);
      for(auto& v:f) v*=-1;
      std::reverse(f.begin(), f.end());
 

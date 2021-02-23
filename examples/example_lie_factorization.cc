@@ -15,7 +15,7 @@ using std::endl;
 
 int main() {
     int dim = 2;
-    int da_order = 6;
+    int da_order = 10;
     int da_dim = 2*dim;
     int da_scratch = 5000;
     //Initialize the da environment. Reserve one more order for the following Lie factorization calculation.
@@ -23,7 +23,7 @@ int main() {
 
     //Read the truncated map from file.
     vector<Map> trunc_map(da_dim, Map(dim, da_full_length()));
-    char filename[100] = "test_Liemap_6th_order_4_dim.txt"; //Truncated Taylor map
+    char filename[100] = "test_Liemap_10th_order_4_dim.txt"; //Truncated Taylor map
     readCOSYMap(dim, filename, trunc_map);
 
     //Print the map to screen.
@@ -62,6 +62,32 @@ int main() {
     for(auto&v : l) v.print();
     cout<<"f_i: "<<endl;
     for(auto&v : fo) v.print();
+
+
+    DAVector::set_eps(1e-15);
+    lie_factorization(da_map, da_dim, da_order, c, l , fo ,true);
+
+    cout<<"Lie factorization: "<<endl;
+    cout<<"Constants: "<<endl;
+    for(int i=0; i<da_dim; ++i) {
+    cout<<c.at(i)<<endl;
+    }
+    cout<<"Linear map: "<<endl;
+    for(auto&v : l) v.print();
+    cout<<"f_i: "<<endl;
+    for(auto&v : fo) v.print();
+
+    lie_factorization_inverse_order(da_map, da_dim, da_order, c, l , fo, true);
+    cout<<"Lie factorization in verse order: "<<endl;
+    cout<<"Constants: "<<endl;
+    for(int i=0; i<da_dim; ++i) {
+    cout<<c.at(i)<<endl;
+    }
+    cout<<"Linear map: "<<endl;
+    for(auto&v : l) v.print();
+    cout<<"f_i: "<<endl;
+    for(auto&v : fo) v.print();
+
 
     return 0;
 }
