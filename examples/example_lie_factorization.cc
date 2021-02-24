@@ -1,4 +1,4 @@
-#include "../include/da.h"
+#include "../tpsa_lib/include/da.h"
 #include "../include/da_functions.h"
 #include <iostream>
 #include "../include/map.hpp"
@@ -63,8 +63,7 @@ int main() {
     cout<<"f_i: "<<endl;
     for(auto&v : fo) v.print();
 
-
-    DAVector::set_eps(1e-15);
+    da_set_eps(1e-15);
     lie_factorization(da_map, da_dim, da_order, c, l , fo ,true);
 
     cout<<"Lie factorization: "<<endl;
@@ -87,7 +86,6 @@ int main() {
     for(auto&v : l) v.print();
     cout<<"f_i: "<<endl;
     for(auto&v : fo) v.print();
-
 
     return 0;
 }

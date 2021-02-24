@@ -38,7 +38,7 @@ DAVector da_flow(std::vector<DAVector>& f, DAVector& g, unsigned int nv) {
     DAVector res = g + dg;
     double cnt = 1.0;
 
-    double eps = DAVector::eps();
+    double eps = DAVector::eps;
     while(dg.norm()>eps) {
         cnt += 1;
         dg /= cnt;
@@ -71,7 +71,6 @@ DAVector lie_exp(DAVector& f, DAVector& g, unsigned int nv) {
  * \param c Constants of the map.
  * \param l Linear map.
  * \param f The fi of the Lie factorization.
- * \param eps If the absolute value of a coefficient in a DA vector is less than eps, it will be set to zero.
  * \return none.
  *
  */
@@ -134,7 +133,6 @@ void lie_factorization(std::vector<DAVector>& m, unsigned int nv, int no, std::v
  * \param c Constants of the map.
  * \param l Linear map.
  * \param f The fi of the Lie factorization.
- * \param eps If the absolute value of a coefficient in a DA vector is less than eps, it will be set to zero.
  * \return none.
  *
  */
