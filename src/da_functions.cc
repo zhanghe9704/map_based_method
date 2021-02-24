@@ -1,6 +1,7 @@
 #include "../include/da_functions.h"
 #include <algorithm>
 #include <assert.h>
+#include <cmath>
 
 
 DAVector potential(std::vector<DAVector>& field, unsigned int nv) {
@@ -96,7 +97,7 @@ void lie_factorization(std::vector<DAVector>& m, unsigned int nv, int no, std::v
     std::vector<DAVector> nl(nv);
     da_composition(n, ln, nl);
 
-    for(int i=1; i<no; ++i) {
+    for(unsigned int i=1; i<no; ++i) {
         unsigned int order = i+1;
         if(combine) {
             order = pow(2,i);

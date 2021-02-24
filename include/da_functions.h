@@ -1,7 +1,7 @@
 #ifndef DA_FUNCTIONS_H_INCLUDED
 #define DA_FUNCTIONS_H_INCLUDED
 
-#include "..\tpsa_lib\include\da.h"
+#include "../tpsa_lib/include/da.h"
 
 DAVector potential(std::vector<DAVector> &field, unsigned int nv);
 DAVector da_gmd(DAVector& f, std::vector<DAVector>& g, unsigned int nv);

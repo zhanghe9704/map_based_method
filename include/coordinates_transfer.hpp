@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <vector>
-#include "..\tpsa_lib\include\da.h"
+#include "../tpsa_lib/include/da.h"
 
 //X_madx = trans(X_cosy)
 void trans_madx_to_cosy(double gamma, std::vector<DAVector> &trans);
