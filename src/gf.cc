@@ -175,10 +175,18 @@ void gf_eqns(std::vector<DAVector>& ivecs, int dim, const int type, std::vector<
         std::cout<< "Wrong selection of generating function!" <<std::endl;
     }
     }
+    int order = DAVector::order();
+    DAVector gf;
+    if(da_change_order(order+1)==0) {
+        gf = potential(ovecs, dim*2);
+    }
+    else {
+        assert("Error in gf_eqns: The DA order should be initialized at least 1 order higher than the current DA order in use for generating function calculation!"&&false);
+    }
+//    da_restore_order();
+//    DAVector gf = potential(ovecs, dim*2);
 
-    da_restore_order();
-    DAVector gf = potential(ovecs, dim*2);
-
+//    std::cout<<"gf "<<type<<" in gf_eqns: "<<std::endl;
 //    gf.print();
 
     switch(type) {
@@ -211,44 +219,45 @@ void gf_eqns(std::vector<DAVector>& ivecs, int dim, const int type, std::vector<
         std::cout<< "Wrong selection of generating function!" <<std::endl;
     }
     }
-    da_change_order(DAVector::order()-1);
+    da_change_order(order);
+//    da_change_order(DAVector::order()-1);
 }
 
 void generating_function(std::vector<DAVector>& ivecs, int dim, const int type, DAVector& gf) {
-    da_change_order(DAVector::order()-1);
-    std::vector<DAVector> ovecs(dim*2);
-    gf_eqns(ivecs, dim, type, ovecs);
-    da_restore_order();
-    gf = potential(ovecs, dim*2);
-}
-//
-//void generating_function(std::vector<DAVector>& ivecs, int dim, const int type, DAVector& gf) {
 //    da_change_order(DAVector::order()-1);
-//    std::vector<DAVector> ovecs(dim);
-//    switch(type) {
-//    case 1 : {
-//        gf_equation_1(ivecs, dim, ovecs);
-//        break;
-//    }
-//    case 2 : {
-//        gf_equation_2(ivecs, dim, ovecs);
-//        break;
-//    }
-//    case 3 : {
-//        gf_equation_3(ivecs, dim, ovecs);
-//        break;
-//    }
-//    case 4 : {
-//        gf_equation_4(ivecs, dim, ovecs);
-//        break;
-//    }
-//    default : {
-//        std::cout<< "Wrong selection of generating function!" <<std::endl;
-//    }
-//    }
+    std::vector<DAVector> ovecs(dim);
+    switch(type) {
+    case 1 : {
+        gf_equation_1(ivecs, dim, ovecs);
+        break;
+    }
+    case 2 : {
+        gf_equation_2(ivecs, dim, ovecs);
+        break;
+    }
+    case 3 : {
+        gf_equation_3(ivecs, dim, ovecs);
+        break;
+    }
+    case 4 : {
+        gf_equation_4(ivecs, dim, ovecs);
+        break;
+    }
+    default : {
+        std::cout<< "Wrong selection of generating function!" <<std::endl;
+    }
+    }
 //    da_restore_order();
 //    gf = potential(ovecs, dim*2);
-//}
+    int order = DAVector::order();
+    if(da_change_order(order+1)==0) {
+        gf = potential(ovecs, dim*2);
+    }
+    else {
+        assert("Error in generating_function: The DA order should be initialized at least 1 order higher than the current DA order in use for generating function calculation!"&&false);
+    }
+    da_change_order(order);
+}
 
 void generating_function_1(std::vector<DAVector>& ivecs, int dim, DAVector& gf) {
     dim *= 2;
@@ -266,7 +275,7 @@ void generating_function_1(std::vector<DAVector>& ivecs, int dim, DAVector& gf) 
         n1.at(i) = da[i];
         n1.at(i+1) = ivecs.at(i);
         n2.at(i) = da[i+1];
-        n2.at(i+1) = ivecs.at(i+1);
+        n2.at(i+1) = -ivecs.at(i+1);
     }
     inv_map(n1, dim, tmp);
     for(int i=0; i<dim; ++i) n1.at(i) = tmp.at(i);
@@ -276,25 +285,6 @@ void generating_function_1(std::vector<DAVector>& ivecs, int dim, DAVector& gf) 
 
     da_restore_order();
     gf = potential(n1, dim);
-//
-//    gf.reset();
-//
-//    for(int i=0; i<dim; i+=2) {
-//        for(int j=0; j<dim; ++j) n2.at(j) = n1.at(j);
-//        u.at(i) = da[i];
-//        da_composition(n2, u, tmp);
-//        for(int j=0; j<dim; ++j) n2.at(j) = tmp.at(j);
-//        DAVector t = da_int(n2.at(i+1),i);
-//        gf = gf + t;
-//    }
-//
-//    for(int i=1; i<dim; i+=2) {
-//        for(int j=0; j<dim; ++j) n2.at(j) = n1.at(j);
-//        u.at(i) = da[i];
-//        da_composition(n2, u, tmp);
-//        for(int j=0; j<dim; ++j) n2.at(j) = tmp.at(j);
-//        gf = gf - da_int(n2.at(i-1), i);
-//    }
 }
 
 void generating_function_2(std::vector<DAVector>& ivecs, int dim, DAVector& gf) {
@@ -312,8 +302,8 @@ void generating_function_2(std::vector<DAVector>& ivecs, int dim, DAVector& gf) 
     for(int i=0; i<dim; i+=2) {
         n1.at(i) = da[i];
         n1.at(i+1) = ivecs.at(i+1);
-        n2.at(i) = ivecs.at(i);
-        n2.at(i+1) = da[i+1];
+        n2.at(i) = da[i+1];
+        n2.at(i+1) = ivecs.at(i);
     }
     inv_map(n1, dim, tmp);
     for(int i=0; i<dim; ++i) n1.at(i) = tmp.at(i);
@@ -323,25 +313,6 @@ void generating_function_2(std::vector<DAVector>& ivecs, int dim, DAVector& gf) 
 
     da_restore_order();
     gf = potential(n1, dim);
-
-//    gf.reset();
-//
-//    for(int i=0; i<dim; i+=2) {
-//        for(int j=0; j<dim; ++j) n2.at(j) = n1.at(j);
-//        u.at(i) = da[i];
-//        da_composition(n2, u, tmp);
-//        for(int j=0; j<dim; ++j) n2.at(j) = tmp.at(j);
-//        DAVector t = da_int(n2.at(i+1),i);
-//        gf = gf + t;
-//    }
-//
-//    for(int i=1; i<dim; i+=2) {
-//        for(int j=0; j<dim; ++j) n2.at(j) = n1.at(j);
-//        u.at(i) = da[i];
-//        da_composition(n2, u, tmp);
-//        for(int j=0; j<dim; ++j) n2.at(j) = tmp.at(j);
-//        gf = gf + da_int(n2.at(i-1), i);
-//    }
 }
 
 void generating_function_3(std::vector<DAVector>& ivecs, int dim, DAVector& gf) {
@@ -367,6 +338,7 @@ void generating_function_3(std::vector<DAVector>& ivecs, int dim, DAVector& gf) 
 
     da_composition(n2, n1, tmp);
     for(int i=0; i<dim; ++i) n1.at(i) = tmp.at(i);
+
     da_restore_order();
     gf = potential(n1, dim);
 }
@@ -397,33 +369,60 @@ void generating_function_4(std::vector<DAVector>& ivecs, int dim, DAVector& gf) 
 
     da_restore_order();
     gf = potential(n1, dim);
-
-//    gf.reset();
-//
-//    for(int i=0; i<dim; i+=2) {
-//        for(int j=0; j<dim; ++j) n2.at(j) = n1.at(j);
-//        u.at(i) = da[i];
-//        da_composition(n2, u, tmp);
-//        for(int j=0; j<dim; ++j) n2.at(j) = tmp.at(j);
-//        DAVector t = da_int(n2.at(i+1),i);
-//        gf = gf - t;
-//    }
-//
-//    for(int i=1; i<dim; i+=2) {
-//        for(int j=0; j<dim; ++j) n2.at(j) = n1.at(j);
-//        u.at(i) = da[i];
-//        da_composition(n2, u, tmp);
-//        for(int j=0; j<dim; ++j) n2.at(j) = tmp.at(j);
-//        gf = gf + da_int(n2.at(i-1), i);
-//    }
 }
 
-void eqns_gf2(DAVector& gf2, int dim, std::vector<DAVector>& eqns) {
+//void eqns_gf2(DAVector& gf2, int dim, std::vector<DAVector>& eqns) {
+//    dim *= 2;
+//    assert(dim<=DAVector::dim()&&"Wrong dimension of map in eqns_gf2!");
+//    std::vector<DAVector> tmp(dim);
+//    for(int i=0; i<dim; i+=2) tmp.at(i) = da_der(gf2, i+1);
+//    for(int i=1; i<dim; i+=2) tmp.at(i) = da_der(gf2, i-1);
+//    eqns.clear();
+//    for(auto v: tmp) eqns.push_back(v);
+//}
+
+void gf2map(DAVector& gf, int dim, const int type, std::vector<DAVector>& m) {
     dim *= 2;
-    assert(dim<=DAVector::dim()&&"Wrong dimension of map in eqns_gf2!");
-    std::vector<DAVector> tmp(dim);
-    for(int i=0; i<dim; i+=2) tmp.at(i) = da_der(gf2, i+1);
-    for(int i=1; i<dim; i+=2) tmp.at(i) = da_der(gf2, i-1);
-    eqns.clear();
-    for(auto v: tmp) eqns.push_back(v);
+    assert(dim<=DAVector::dim()&&"Wrong value for dimension in function: gf2map!");
+    assert(dim==m.size()&&"Wrong dimension of the output vector m in function: gf2map!");
+
+    std::vector<DAVector> n(dim);
+    std::vector<DAVector> ni(dim);
+    if(type==1 || type==2) {
+        for(int i=0; i<dim; i+=2) {
+            n.at(i) = da[i];
+            n.at(i+1) = da_der(gf, i);
+        }
+    }
+    else if(type==3 || type==4) {
+        for(int i=0; i<dim; i+=2) {
+            n.at(i) = -1*da_der(gf, i);
+            n.at(i+1) = da[i];
+        }
+    }
+    else {
+        assert("Wrong value for TYPE in function: gf2map! Should be 1, 2, 3, or 4."&&false);
+    }
+    inv_map(n, dim, ni);
+
+    if(type==1 || type==3) {
+        for(int i=0; i<dim; i+=2) {
+            n.at(i) = da[i+1];
+            n.at(i+1) = -1*da_der(gf, i+1);
+        }
+    }
+    else if(type==2 || type==4) {
+        for(int i=0; i<dim; i+=2) {
+            n.at(i) = da_der(gf, i+1);
+            n.at(i+1) = da[i+1];
+        }
+    }
+    da_composition(n, ni, m);
+}
+
+
+void map_symp(std::vector<DAVector>& truc_map, const int dim, const int gf_type, std::vector<DAVector>& sym_map) {
+    DAVector gf;
+    generating_function(truc_map, dim, gf_type, gf);
+    gf2map(gf, dim, gf_type, sym_map);
 }
