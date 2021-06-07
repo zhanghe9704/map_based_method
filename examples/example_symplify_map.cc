@@ -5,7 +5,7 @@
 /******
 * In this example, we read the truncated map from an output of COSY Infinity 9.x
 * and track the particle with a given initial coordinates using the map.
-* Then we symplificate the truncated map and track the same particle using the symplificated map.
+* Then we symplectificate the truncated map and track the same particle using the symplectificated map.
 * Use the python script plot.py to plot the tracking result in phase space and save them in x-xp.pdf and y-yp.pdf.
 ******/
 int main() {
